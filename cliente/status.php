@@ -25,7 +25,27 @@ if (isset($_GET['codigo'])) {
     if ($response === false) {
         echo 'Falha na solicitação: ' . curl_error($ch);
     } else {
-        echo $response;
+        $responseData = json_decode($response, true);
+
+        if ($responseData['code'] == 0 && isset($responseData['data']['accepted'][0]['track_info']['milestone'])) {
+            $milestones = $responseData['data']['accepted'][0]['track_info']['milestone'];
+
+            echo "[ x ] Pedido feito";
+
+            foreach ($milestones as $milestone) {
+                $status = $milestone['key_stage'];
+
+                if ($status == 'InfoReceived') {
+                    echo " ---> [ x ] Enviado";
+                } elseif ($status == 'PickedUp') {
+                    echo " ---> [ x ] Em trânsito";
+                } elseif ($status == 'Delivered') {
+                    echo " ---> [ x ] Entregue";
+                }
+            }
+        } else {
+            echo "Não foi possível obter informações de rastreamento para o código informado.";
+        }
     }
 
     curl_close($ch);
