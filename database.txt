@@ -1,0 +1,23 @@
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(255) NOT NULL,
+  password VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE clients (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE tracking_codes (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  client_id INT NOT NULL,
+  code VARCHAR(191) NOT NULL UNIQUE,
+  FOREIGN KEY (client_id) REFERENCES clients(id)
+);
+
+
+
+#####
+INSERT INTO users (username, password)
+VALUES ('root', 'senha');
