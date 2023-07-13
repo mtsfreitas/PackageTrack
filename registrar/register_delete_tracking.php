@@ -49,43 +49,6 @@ if ($action === 'Registrar') {
 
     if ($conn->query($sql) === TRUE) {
         echo "Código de rastreio registrado no banco de dados com sucesso!";
-
-        // Aqui está a nova lógica para fazer a solicitação POST
-        $url = 'https://api.17track.net/track/v2/register';
-        $headers = [
-            '17token: E2C0856D641F44DE07AE3BAE2F69D2B2',
-            'Content-Type: application/json'
-        ];
-        $data = json_encode([
-            [
-                "number" => $tracking_code
-            ]
-        ]);
-
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($curl, CURLOPT_POST, 1);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        #update curl.cainfo
-        #curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
-        #curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-
-        $response = curl_exec($curl);
-        if($response === false) {
-            echo 'Curl error: ' . curl_error($curl);
-        }
-     
-        $statusCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-
-        if($statusCode == 200) {
-            echo "Código de rastreio registrado na API com sucesso!";
-        } else {
-            echo "A solicitação falhou com o status $statusCode";
-        }
-
-        curl_close($curl);
     } else {
         echo "Erro ao registrar código de rastreio: " . $conn->error;
     }

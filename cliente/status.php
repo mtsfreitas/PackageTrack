@@ -1,55 +1,47 @@
-<?php
-// Verifica se o parâmetro 'codigo' está presente na URL
-if (isset($_GET['codigo'])) {
-    // Obtém o código de rastreamento da URL
-    $codigo = $_GET['codigo'];
-
-    // Faz a solicitação para a API
-    $url = 'https://api.17track.net/track/v2/gettrackinfo';
-    $headers = [
-        '17token: E2C0856D641F44DE07AE3BAE2F69D2B2',
-        'Content-Type: application/json'
-    ];
-    $data = json_encode([['number' => $codigo]]);
-
-    $ch = curl_init();
-
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-    $response = curl_exec($ch);
-
-    if ($response === false) {
-        echo 'Falha na solicitação: ' . curl_error($ch);
-    } else {
-        $responseData = json_decode($response, true);
-
-        if ($responseData['code'] == 0 && isset($responseData['data']['accepted'][0]['track_info']['milestone'])) {
-            $milestones = $responseData['data']['accepted'][0]['track_info']['milestone'];
-
-            echo "[ x ] Pedido feito";
-
-            foreach ($milestones as $milestone) {
-                $status = $milestone['key_stage'];
-
-                if ($status == 'InfoReceived') {
-                    echo " ---> [ x ] Enviado";
-                } elseif ($status == 'PickedUp') {
-                    echo " ---> [ x ] Em trânsito";
-                } elseif ($status == 'Delivered') {
-                    echo " ---> [ x ] Entregue";
-                }
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Status do Pacote</title>
+        <style>
+           #loading {
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                margin: auto;
+                display: block;
+                width: 100px;   /* Ajuste esses valores para as dimensões do seu GIF */
+                height: 100px;  /* Ajuste esses valores para as dimensões do seu GIF */
             }
-        } else {
-            echo "Não foi possível obter informações de rastreamento para o código informado.";
-        }
-    }
+        </style>
+    </head>
+    <body>
+        <h1>Status do Pacote</h1>
+        <div id="status"></div>
+        <img id="loading" src="loading.gif" alt="Loading..." />
 
-    curl_close($ch);
-} else {
-    echo 'Nenhum código de rastreamento fornecido na URL.';
-}
-?>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script>
+            $(document).ready(function() {
+                $.ajax({
+                    url: 'status_processing.php?codigo=<?php echo $_GET['codigo']; ?>',
+                    type: 'GET',
+                    success: function(result) {
+                        $("#loading").hide();
+                        var response = JSON.parse(result);
+                        if(response.error) {
+                            $("#status").html(response.error);
+                        } else {
+                            $("#status").html('Status do pacote: ' + response.status);
+                        }
+                    },
+                    error: function() {
+                        $("#loading").hide();
+                        $("#status").html('Erro ao buscar o status do pacote.');
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>
