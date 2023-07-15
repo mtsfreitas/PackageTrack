@@ -23,7 +23,7 @@ if ($result->num_rows > 0) {
     $client_id = $row['id'];
 
     // Busca os códigos de rastreamento para o cliente
-    $query = "SELECT code FROM tracking_codes WHERE client_id = ?";
+    $query = "SELECT masked_code FROM tracking_codes WHERE client_id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $client_id);
     $stmt->execute();
@@ -31,7 +31,7 @@ if ($result->num_rows > 0) {
 
     // Exibe os links para cada código de rastreamento
     while ($row = $result->fetch_assoc()) {
-        echo "<a href='status.php?codigo=".$row['code']."'>".$row['code']."</a><br/>";
+        echo "<a href='status.php?codigo=".$row['masked_code']."'>".$row['masked_code']."</a><br/>";
     }
 } else {
     echo "Nenhum cliente encontrado com o e-mail fornecido.";

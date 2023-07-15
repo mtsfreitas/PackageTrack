@@ -1,47 +1,55 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Status do Pacote</title>
-        <style>
-           #loading {
-                position: fixed;
-                top: 0;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                margin: auto;
-                display: block;
-                width: 100px;   /* Ajuste esses valores para as dimensões do seu GIF */
-                height: 100px;  /* Ajuste esses valores para as dimensões do seu GIF */
-            }
-        </style>
-    </head>
-    <body>
-        <h1>Status do Pacote</h1>
-        <div id="status"></div>
-        <img id="loading" src="loading.gif" alt="Loading..." />
+<?php
+include '../modulo/db_config.php';
 
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-        <script>
-            $(document).ready(function() {
-                $.ajax({
-                    url: 'status_processing.php?codigo=<?php echo $_GET['codigo']; ?>',
-                    type: 'GET',
-                    success: function(result) {
-                        $("#loading").hide();
-                        var response = JSON.parse(result);
-                        if(response.error) {
-                            $("#status").html(response.error);
-                        } else {
-                            $("#status").html('Status do pacote: ' + response.status);
-                        }
-                    },
-                    error: function() {
-                        $("#loading").hide();
-                        $("#status").html('Erro ao buscar o status do pacote.');
-                    }
-                });
-            });
-        </script>
-    </body>
-</html>
+$conn = new mysqli($host, $user, $pass, $db);
+if ($conn->connect_error) {
+    die("Falha na conexão: " . $conn->connect_error);
+}
+
+$codigo = $_GET['codigo'];
+
+$query = "SELECT created_at, from_brazil FROM tracking_codes WHERE masked_code = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("s", $codigo);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows > 0) {
+    $row = $result->fetch_assoc();
+
+    $created_at = new DateTime($row['created_at']);
+    $from_brazil = $row['from_brazil'];
+    $now = new DateTime();
+
+    $interval = $created_at->diff($now);
+    $days = $interval->days;
+
+    // Excluindo sábados e domingos do cálculo
+    $remainingDays = $days;
+    $weekendDays = 0;
+    while ($remainingDays > 0) {
+        $dayOfWeek = $created_at->format('N');
+        if ($dayOfWeek >= 6) {
+            $weekendDays++;
+        }
+        $created_at->modify('+1 day');
+        $remainingDays--;
+    }
+    $days -= $weekendDays;
+
+    if ($days >= 0 && $days < 2) {
+        echo "Pedido feitoso";
+    } else if ($days >= 2 && $days < 4) {
+        echo "Enviado à transportadora.";
+    } else if ($days >= 4 && $days < (($from_brazil == 1) ? 14 : 28)) {
+        echo "Em trânsito.";
+    } else if ($days >= (($from_brazil == 1) ? 14 : 28)) {
+        echo "Entregue.";
+    }
+} else {
+    echo "Código de rastreamento não encontrado.";
+}
+
+$stmt->close();
+$conn->close();
+?>

@@ -21,7 +21,7 @@
     if ($result->num_rows > 0) {
         $_SESSION['loggedin'] = true;
         $_SESSION['username'] = $username;
-        header("Location: registro.php"); // Redirecionando para a página de registro
+        header("Location: menu.php"); // Redirecionando para a página de registro
     } else {
         echo "Nome de usuário ou senha incorretos!";
     }
