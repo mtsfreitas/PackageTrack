@@ -1,53 +1,54 @@
 <?php
 include '../modulo/db_config.php';
 
+// Iniciando a sessão
+session_start();
+
 $conn = new mysqli($host, $user, $pass, $db);
 if ($conn->connect_error) {
     die("Falha na conexão: " . $conn->connect_error);
 }
 
-$codigo = $_GET['codigo'];
+$client_email = $_SESSION['client_email'];
+$tracking_code = $_SESSION['tracking_code'];
+$status = $_POST['new_status'];
+$origin_region = $_POST['origin_region'];  // nova variável para armazenar a região de origem do pedido
 
-$query = "SELECT created_at, from_brazil FROM tracking_codes WHERE masked_code = ?";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("s", $codigo);
-$stmt->execute();
-$result = $stmt->get_result();
+if ($status == "" && $origin_region == "") {
+    exit("Nenhuma alteração feita. Selecione o novo status ou a região de origem para continuar.");
+}
 
-if ($result->num_rows > 0) {
-    $row = $result->fetch_assoc();
+// Configurando os dias conforme o status selecionado
+$days = null;
+switch ($status) {
+    case "Pedido feito.":
+        $days = 0;
+        break;
+    case "Enviado à transportadora.":
+        $days = 2;
+        break;
+    case "Em trânsito.":
+        $days = 4;
+        break;
+    case "Entregue.":
+        $days = 14;
+        break;
+    default:
+        $status = null;
+}
 
-    $created_at = new DateTime($row['created_at']);
-    $from_brazil = $row['from_brazil'];
-    $now = new DateTime();
+$sql = "UPDATE tracking_codes 
+        INNER JOIN clients ON tracking_codes.client_id = clients.id 
+        SET order_status = COALESCE(?, order_status), created_at = COALESCE(DATE_SUB(NOW(), INTERVAL ? DAY), created_at), from_brazil = COALESCE(?, from_brazil)
+        WHERE clients.email = ? AND tracking_codes.code = ?";
 
-    $interval = $created_at->diff($now);
-    $days = $interval->days;
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("sisss", $status, $days, $origin_region, $client_email, $tracking_code);
 
-    // Excluindo sábados e domingos do cálculo
-    $remainingDays = $days;
-    $weekendDays = 0;
-    while ($remainingDays > 0) {
-        $dayOfWeek = $created_at->format('N');
-        if ($dayOfWeek >= 6) {
-            $weekendDays++;
-        }
-        $created_at->modify('+1 day');
-        $remainingDays--;
-    }
-    $days -= $weekendDays;
-
-    if ($days >= 0 && $days < 2) {
-        echo "Pedido feito.";
-    } else if ($days >= 2 && $days < 4) {
-        echo "Enviado à transportadora.";
-    } else if ($days >= 4 && $days < (($from_brazil == 1) ? 14 : 28)) {
-        echo "Em trânsito.";
-    } else if ($days >= (($from_brazil == 1) ? 14 : 28)) {
-        echo "Entregue.";
-    }
+if ($stmt->execute() === TRUE) {
+    echo "Status do código de rastreio atualizado com sucesso!";
 } else {
-    echo "Código de rastreamento não encontrado.";
+    echo "Erro ao atualizar o status do código de rastreio: " . $stmt->error;
 }
 
 $stmt->close();
