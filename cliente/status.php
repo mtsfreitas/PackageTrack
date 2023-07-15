@@ -44,7 +44,7 @@ if ($result->num_rows > 0) {
     if ($remaining_delivery_days <= 0) {
         $delivery_message = "Sua encomenda chegou";
     } else {
-        $delivery_message = "O seu pedido chegará aproximadamente em até " . $remaining_delivery_days . " dias úteis.";
+        $delivery_message = "O pedido <strong>" . $codigo . "</strong> chegará aproximadamente em até " . $remaining_delivery_days . " dias úteis.";
     }
 
     if ($days >= 0 && $days < 2) {
@@ -72,6 +72,18 @@ $statusList = array("Pedido feito", "Enviado à transportadora", "Em trânsito",
 <html>
 <head>
 <style>
+    .container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh; /* Use a altura total da viewport */
+        text-align: left;
+    }
+
+    .status-container {
+        display: inline-block;
+    }
     .status-list {
         list-style-type: none;
         padding: 0;
@@ -84,8 +96,8 @@ $statusList = array("Pedido feito", "Enviado à transportadora", "Em trânsito",
         position: absolute;
         top: 0;
         bottom: 0;
-        left: 11px;
-        border-left: 2px dashed grey; /* linha tracejada */
+        left: 10px;
+        border-left: 1.5px dashed grey; /* linha tracejada */
         z-index: 0;
     }
 
@@ -97,15 +109,17 @@ $statusList = array("Pedido feito", "Enviado à transportadora", "Em trânsito",
     }
 
     .status-item .square {
-        width: 20px;
-        height: 20px;
-        border: 2px solid grey;
-        position: absolute;
-        background-color: white;
-        left: 0;
-        top: 50%;
-        transform: translateY(-50%);
-    }
+    width: 20px;
+    height: 20px;
+    border: 1px solid grey;
+    position: absolute;
+    background-color: white;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    border-radius: 50%; /* adicionado para criar um círculo */
+}
+
 
     .status-item.active .square, .status-item.completed .square {
         background-color: cyan;
@@ -118,7 +132,14 @@ $statusList = array("Pedido feito", "Enviado à transportadora", "Em trânsito",
 
 </head>
 <body>
-    <ul class="status-list">
+<div class="container">
+        <!-- Mova este código HTML para o topo da lista de status -->
+        <li class="status-item">
+            <span><?php echo $delivery_message; ?></span>
+        </li>
+        <div class="status-container">
+            <ul class="status-list">
+   
     <?php
     foreach ($statusList as $statusItem) {
         $class = "";
@@ -131,17 +152,17 @@ $statusList = array("Pedido feito", "Enviado à transportadora", "Em trânsito",
         echo '<li class="status-item ' . $class . '">';
         echo '<div class="square">';
         if ($class == "active" || $class == "completed") {
-            echo '<svg><!-- Insira o conteúdo do arquivo icon2.svg aqui --></svg>';
+            echo '<svg>';
+            echo '<use xlink:href="icon2.svg#icone-check"></use>';
+            echo '</svg>';
         }
         echo '</div>';
         echo '<span>' . $statusItem . '</span>';
         echo '</li>';
     }
     ?>
-    <!-- Adicione este código HTML após o bloco PHP que cria a lista de status do pedido -->
-    <li class="status-item">
-        <span><?php echo $delivery_message; ?></span>
-    </li>
     </ul>
+</div>
+</div>
 </body>
 </html>
