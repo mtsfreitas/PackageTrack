@@ -16,31 +16,34 @@ $result = $stmt->get_result();
 
 if ($result->num_rows > 0) {
     $row = $result->fetch_assoc();
-    
-    // Adicionando o timezone ao objeto DateTime
-    $created_at = new DateTime($row['created_at'], new DateTimeZone('UTC'));
+
+    $created_at = new DateTime($row['created_at']);
     $from_brazil = $row['from_brazil'];
-    $now = new DateTime(null, new DateTimeZone('UTC'));
+    $now = new DateTime();
 
-    // Se for fim de semana, retroceda para a última sexta-feira
-    $weekday = $now->format('N');
-    if ($weekday == 6) {
-        // Sábado: retroceda um dia
-        $now->modify('-1 day');
-    } elseif ($weekday == 7) {
-        // Domingo: retroceda dois dias
-        $now->modify('-2 days');
+    $interval = $created_at->diff($now);
+    $days = $interval->days;
+
+    // Excluindo sábados e domingos do cálculo
+    $remainingDays = $days;
+    $weekendDays = 0;
+    while ($remainingDays > 0) {
+        $dayOfWeek = $created_at->format('N');
+        if ($dayOfWeek >= 6) {
+            $weekendDays++;
+        }
+        $created_at->modify('+1 day');
+        $remainingDays--;
     }
+    $days -= $weekendDays;
 
-    $diff = $created_at->diff($now)->days;
-
-    if ($diff == 0) {
+    if ($days >= 0 && $days < 2) {
         echo "Pedido feito.";
-    } else if ($diff >= 2 && $diff < 4) {
+    } else if ($days >= 2 && $days < 4) {
         echo "Enviado à transportadora.";
-    } else if ($diff >= 4 && $diff < (($from_brazil == 1) ? 14 : 28)) {
+    } else if ($days >= 4 && $days < (($from_brazil == 1) ? 14 : 28)) {
         echo "Em trânsito.";
-    } else if ($diff >= (($from_brazil == 1) ? 14 : 28)) {
+    } else if ($days >= (($from_brazil == 1) ? 14 : 28)) {
         echo "Entregue.";
     }
 } else {
