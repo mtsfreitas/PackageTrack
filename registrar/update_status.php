@@ -31,7 +31,7 @@ switch ($status) {
         $days = 4;
         break;
     case "Entregue.":
-        $days = 14;
+        $days = 38;
         break;
     default:
         $status = null;
@@ -39,7 +39,7 @@ switch ($status) {
 
 $sql = "UPDATE tracking_codes 
         INNER JOIN clients ON tracking_codes.client_id = clients.id 
-        SET order_status = COALESCE(?, order_status), created_at = COALESCE(DATE_SUB(NOW(), INTERVAL ? DAY), created_at), from_brazil = COALESCE(?, from_brazil)
+        SET order_status = COALESCE(?, order_status), created_at = COALESCE(DATE_SUB(NOW(), INTERVAL ? DAY), created_at), from_brazil = COALESCE(NULLIF(?, ''), from_brazil)
         WHERE clients.email = ? AND tracking_codes.code = ?";
 
 $stmt = $conn->prepare($sql);
