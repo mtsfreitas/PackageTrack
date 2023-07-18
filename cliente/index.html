@@ -3,15 +3,112 @@
 
 <head>
     <title>Painel de Usuário</title>
+    <style>
+        /* CSS styles go here */
+        /* variables */
+        
+         :root {
+            --background: rgb(2, 0, 36);
+            --background-gradient: linear-gradient(90deg, rgba(2, 0, 36, 1) 0%, rgba(9, 58, 121, 1) 35%, rgba(0, 212, 255, 1) 100%);
+            --text: #9c9c9c;
+            --input-bg-color: #fff;
+            --input-text-color: #a3a3a3;
+            --button-bg-color: #5ac0e2;
+            --button-text-color: #fff;
+        }
+        /* root */
+        
+        html,
+        body,
+        .container {
+            height: 100%;
+            background: var(--background);
+            background: var(--background-gradient);
+            color: var(--text);
+            font: 1rem "PT Sans", sans-serif;
+        }
+        
+        a {
+            color: inherit;
+        }
+        
+        a:hover {
+            color: var(--button-bg-color);
+        }
+        /* helper */
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .uppercase {
+            text-transform: uppercase;
+        }
+        /* button */
+        
+        .btn {
+            display: inline-block;
+            background: transparent;
+            color: inherit;
+            font: inherit;
+            border: 0;
+            outline: 0;
+            padding: 0;
+            transition: all 200ms ease-in;
+            cursor: pointer;
+        }
+        
+        .btn--primary {
+            background: var(--button-bg-color);
+            color: var(--button-text-color);
+            box-shadow: 0 0 10px 2px rgba(0, 0, 0, .1);
+            border-radius: 2px;
+            padding: 12px 36px;
+        }
+        
+        .btn--primary:hover {
+            background: #4ec1b2;
+        }
+        
+        .btn--primary:active {
+            background: var(--button-bg-color);
+            box-shadow: inset 0 0 10px 2px rgba(0, 0, 0, .2);
+        }
+        
+        .btn--inside {
+            margin-left: -96px;
+        }
+        /* form */
+        
+        .form__field {
+            width: 360px;
+            background: var(--input-bg-color);
+            color: var(--input-text-color);
+            font: inherit;
+            box-shadow: 0 6px 10px 0 rgba(0, 0, 0, .1);
+            border: 0;
+            outline: 0;
+            padding: 22px 18px;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Busca de Encomendas</h1>
-    <form action="rastreio.php" method="post">
-        <label for="email">Digite seu e-mail:</label>
-        <input type="email" id="email" name="email" required>
-        <input type="submit" value="Buscar encomendas">
-    </form>
+    <div class="container">
+        <div class="container__item">
+            <form action="rastreio.php" method="post">
+                <input type="email" class="form__field" placeholder="Digite o e-mail cadastrado na loja" name="email" required />
+                <button type="submit" class="btn btn--primary btn--inside uppercase">Buscar</button>
+            </form>
+        </div>
+
+        <div class="container__item container__item--bottom">
+            <p>Loja <a href="//google.com.br" target="_blank">Zanette</a>.</p>
+        </div>
+    </div>
 </body>
 
 </html>

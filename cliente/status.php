@@ -47,7 +47,7 @@ if ($result->num_rows > 0) {
     if ($remaining_delivery_days <= 0) {
         $delivery_message = "Sua encomenda chegou". $businessDays;
     } else {
-        $delivery_message = "O pedidao <strong>" . $codigo . "</strong> chegará aproximadamente em até " . $remaining_delivery_days . " dias úteis." . $businessDays;
+        $delivery_message = "O pedido <strong>" . $codigo . "</strong> chegará aproximadamente em até " . $remaining_delivery_days . " dias úteis.";
     }
 
     if ($businessDays  >= 0 && $businessDays  < 2) {
@@ -75,6 +75,7 @@ $statusList = array("Pedido feito", "Enviado à transportadora", "Em trânsito",
 <html>
 <head>
 <style>
+
     .icon {
         width: 100%;
         height: 65%;
