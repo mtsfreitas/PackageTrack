@@ -34,6 +34,10 @@ function seeded_shuffle($str, $seed){
 // Dependendo da ação, executar código diferente
 switch($action) {
     case 'Registrar':
+        if (empty($_POST['tracking_code'])) {
+            echo "O campo de código de rastreio está vazio.";
+            exit;
+        }
         // Código para registrar aqui
         $seed = crc32($_POST['tracking_code']);
         $masked_code = seeded_shuffle($_POST['tracking_code'], $seed);
