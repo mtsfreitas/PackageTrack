@@ -40,10 +40,11 @@
       margin: 0;
       padding: 0.75rem;
       text-align: center;
+      color: black;
     }
 
     .floating-stack dd:hover {
-      background-color: #AED6F1;
+      background-color: #78ffb7;
     }
 
     .floating-stack::-webkit-scrollbar {
@@ -52,7 +53,7 @@
 
     .floating-stack::-webkit-scrollbar-thumb {
       border-radius: 100px;
-      background: #8070d4;
+      background: #78ffb7;
       border: 6px solid rgba(0, 0, 0, 0.2);
     }
 
@@ -61,8 +62,8 @@
     }
 
     body {
-      background: rgb(2, 0, 36);
-      background: linear-gradient(90deg, rgba(2, 0, 36, 1) 0%, rgba(9, 58, 121, 1) 35%, rgba(0, 212, 255, 1) 100%);
+      background: rgb(84,144,112);
+      background: linear-gradient(90deg, rgba(84,144,112,1) 0%, rgba(4,65,58,1) 100%);
       color: white;
       height: 100vh;
       margin: 0;
@@ -70,11 +71,18 @@
       place-items: center;
       font: 100%/1.4 system-ui;
     }
+
+    .message {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
   </style>
 </head>
 
 <body>
   <div class="container">
+  <h2 class="message" >Rastreie seu pedido</h2>
     <div class="floating-stack">
       <?php
       // Importa o arquivo de configuração do banco de dados
@@ -109,10 +117,10 @@
 
         // Exibe os links para cada código de rastreamento
         while ($row = $result->fetch_assoc()) {
-          echo "<dd><a href='status.php?codigo=" . $row['masked_code'] . "'>" . $row['masked_code'] . "</a></dd>";
+          echo "<dd><a href='status.php?codigo=" . $row['masked_code'] . "'>&#128230; " . $row['masked_code'] . "</a></dd>";
         }
       } else {
-        echo "<dd>Nenhum cliente encontrado com o e-mail fornecido.</dd>";
+        echo "<dd>Por favor, aguarde alguns dias para que seus pedidos sejam atualizados ou verifique se digitou corretamente seu endereço de e-mail.</dd>";
       }
 
       $stmt->close();

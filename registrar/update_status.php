@@ -43,10 +43,10 @@ $sql = "UPDATE tracking_codes
         SET status_days = COALESCE(?, status_days), 
             updated_at = NOW(), 
             from_brazil = COALESCE(?, from_brazil)
-        WHERE clients.email = ? AND tracking_codes.code = ?";
+        WHERE clients.email = ? AND (tracking_codes.code = ? OR tracking_codes.masked_code = ?)";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("iiss", $businessDays, $origin_region, $client_email, $tracking_code);
+$stmt->bind_param("iisss", $businessDays, $origin_region, $client_email, $tracking_code, $tracking_code);
 
 
 if ($stmt->execute() === TRUE) {

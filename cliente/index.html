@@ -2,18 +2,18 @@
 <html>
 
 <head>
-    <title>Painel de Usuário</title>
+    <title>Rastreio Donnos de Casa</title>
     <style>
         /* CSS styles go here */
         /* variables */
         
          :root {
-            --background: rgb(2, 0, 36);
-            --background-gradient: linear-gradient(90deg, rgba(2, 0, 36, 1) 0%, rgba(9, 58, 121, 1) 35%, rgba(0, 212, 255, 1) 100%);
+            --background: rgb(84, 144, 112);
+            --background-gradient: linear-gradient(90deg, rgba(84, 144, 112, 1) 0%, rgba(4, 65, 58, 1) 100%);
             --text: #9c9c9c;
             --input-bg-color: #fff;
             --input-text-color: #a3a3a3;
-            --button-bg-color: #5ac0e2;
+            --button-bg-color: #42c17d;
             --button-text-color: #fff;
         }
         /* root */
@@ -70,7 +70,7 @@
         }
         
         .btn--primary:hover {
-            background: #4ec1b2;
+            background: #05423b;
         }
         
         .btn--primary:active {
@@ -93,22 +93,53 @@
             outline: 0;
             padding: 22px 18px;
         }
+        
+        .custom-image {
+            width: 300px;
+            /* Defina a largura desejada */
+            height: auto;
+            /* A altura será ajustada proporcionalmente */
+            display: block;
+            /* Tornar a imagem um elemento de bloco */
+            margin-left: auto;
+            /* Centralizar horizontalmente */
+            margin-right: auto;
+            /* Centralizar horizontalmente */
+            position: relative;
+            /* Habilitar posicionamento relativo */
+            top: 20%;
+            /* Posicionar no meio verticalmente */
+            transform: translateY(-50%);
+            /* Ajustar para centralizar verticalmente */
+        }
+        
+        .logo-container {
+            margin-bottom: 20px;
+            /* Espaçamento inferior para a imagem */
+        }
+        
+        .container__item--bottom p {
+            color: #fff;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
         <div class="container__item">
+            <img src="../assets/logo.png" alt="Imagem" class="custom-image" />
             <form action="rastreio.php" method="post">
                 <input type="email" class="form__field" placeholder="Digite o e-mail cadastrado na loja" name="email" required />
-                <button type="submit" class="btn btn--primary btn--inside uppercase">Buscar</button>
+                <button type="submit" class="btn btn--primary btn--inside uppercase">Rastrear</button>
             </form>
         </div>
 
         <div class="container__item container__item--bottom">
-            <p>Loja <a href="//google.com.br" target="_blank">Zanette</a>.</p>
+            <p>Loja <a href="//donnosdecasa.com/" target="_blank">Donnos de Casa</a>.</p>
         </div>
     </div>
+
+
 </body>
 
 </html>

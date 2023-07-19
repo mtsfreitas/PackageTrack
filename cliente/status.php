@@ -41,13 +41,13 @@ if ($result->num_rows > 0) {
     $businessDays += $row['status_days'];
 
     $from_brazil = $row['from_brazil'];
-    $estimated_delivery_days = ($from_brazil == 1) ? 14 : 28;
+    $estimated_delivery_days = ($from_brazil == 1) ? 14 : 21;
     $remaining_delivery_days = $estimated_delivery_days - $businessDays;
 
     if ($remaining_delivery_days <= 0) {
-        $delivery_message = "Sua encomenda chegou". $businessDays;
+        $delivery_message = "Seu pedido chegou! Obrigado por escolher nossos produtos!";
     } else {
-        $delivery_message = "O pedido <strong>" . $codigo . "</strong> chegará aproximadamente em até " . $remaining_delivery_days . " dias úteis.";
+        $delivery_message = "O pedido <strong><span class='delivery-code'>" . $codigo . "</span></strong> chegará aproximadamente em até <span class='delivery-code'><strong>" . $remaining_delivery_days . "</span></strong> dias úteis.";
     }
 
     if ($businessDays  >= 0 && $businessDays  < 2) {
@@ -76,6 +76,9 @@ $statusList = array("Pedido feito", "Enviado à transportadora", "Em trânsito",
 <head>
 <style>
 
+    .delivery-code {
+     color: #52c0b3;
+    }
     .icon {
         width: 100%;
         height: 65%;
@@ -86,9 +89,11 @@ $statusList = array("Pedido feito", "Enviado à transportadora", "Em trânsito",
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        height: 100vh; /* Use a altura total da viewport */
+        height: 100%;
         text-align: left;
+        overflow: auto; /* Add this line */
     }
+
 
     .status-container {
         display: inline-block;
@@ -113,34 +118,50 @@ $statusList = array("Pedido feito", "Enviado à transportadora", "Em trânsito",
     .status-item {
         margin: 30px 0; /* aumenta a distância entre os quadrados */
         padding-left: 30px;
+        padding-right: 30px;
         position: relative;
         z-index: 1;
+        list-style-type: none; /* Removido o marcador de lista */
     }
 
     .status-item .square {
-    width: 20px;
-    height: 20px;
-    border: 1px solid grey;
-    position: absolute;
-    background-color: white;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    border-radius: 50%; /* adicionado para criar um círculo */
-}
+        width: 20px;
+        height: 20px;
+        border: 1px solid grey;
+        position: absolute;
+        background-color: white;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        border-radius: 50%; /* adicionado para criar um círculo */
+    }
+
+    body {
+        background: rgb(84, 144, 112);
+        background: linear-gradient(90deg, rgba(84, 144, 112, 1) 0%, rgba(4, 65, 58, 1) 100%);
+    }
 
 
     .status-item.active .square, .status-item.completed .square {
         background-color: #4ec1b2;;
     }
-
-    .status-item .square svg {
-        /* Adicione estilos para o SVG aqui */
+    .background {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: auto;
+        height: auto;
+        background-color: white;
+        z-index: -1;
+        border-radius: 20px;
     }
+
 </style>
 
 </head>
 <body>
+<div class="background">
 <div class="container">
         <!-- Mova este código HTML para o topo da lista de status -->
         <li class="status-item">
@@ -169,6 +190,7 @@ $statusList = array("Pedido feito", "Enviado à transportadora", "Em trânsito",
     }
     ?>
     </ul>
+</div>
 </div>
 </div>
 </body>
