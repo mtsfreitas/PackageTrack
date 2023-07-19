@@ -38,6 +38,34 @@ switch($action) {
         $seed = crc32($_POST['tracking_code']);
         $masked_code = seeded_shuffle($_POST['tracking_code'], $seed);
 
+        // Verificar se o código de rastreamento já está registrado
+        $sql = "SELECT id FROM tracking_codes WHERE code = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("s", $_POST['tracking_code']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            echo "O código de rastreio já está registrado no banco de dados.";
+            $stmt->close();
+            $conn->close();
+            exit;
+        }
+
+        // Verificar se o código de rastreamento mascarado já está registrado
+        $sql = "SELECT id FROM tracking_codes WHERE masked_code = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("s", $masked_code);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            echo "O código de rastreio já está registrado no banco de dados.";
+            $stmt->close();
+            $conn->close();
+            exit;
+        }
+
         $sql = "SELECT id FROM clients WHERE email = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("s", $_POST['client_email']);
@@ -112,42 +140,58 @@ switch($action) {
         }
         break;
     case 'Buscar':
-        // Protege contra injeção SQL
-        $client_email = $conn->real_escape_string($client_email);
-
-        // Consulta SQL para buscar os dados do cliente e os códigos de rastreamento associados
-        $sql = "SELECT clients.email, tracking_codes.code, tracking_codes.from_brazil, 
-                        tracking_codes.masked_code, tracking_codes.created_at,  tracking_codes.updated_at, tracking_codes.status_days
-                FROM clients
-                INNER JOIN tracking_codes
-                ON clients.id = tracking_codes.client_id
-                WHERE clients.email = ?";
-
-        // Preparando a consulta
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("s", $client_email);
-        $stmt->execute();
-
-        // Armazenando o resultado
-        $result = $stmt->get_result();
-
-        // Verifica se algum resultado foi retornado
-        if ($result->num_rows > 0) {
-            // Exibe os dados de cada linha retornada
-            while($row = $result->fetch_assoc()) {
-                echo "Email: " . $row["email"]. "<br>";
-                echo "Código de Rastreio: " . $row["code"]. "<br>";
-                echo "Produto do Brasil: " . ($row["from_brazil"] ? "Sim" : "Não"). "<br>";
-                echo "Código Mascarado: " . $row["masked_code"]. "<br>";
-                echo "Data de Criação: " . $row["created_at"]. "<br>";
-                echo "Data de Edição: " . $row["updated_at"]. "<br>";
-                echo "Valor de status: " . $row["status_days"]. "<br>";
-                echo "-------------------<br>";
+        if (!empty($tracking_code) && empty($client_email)) {
+            // Se apenas o campo do código estiver preenchido
+            $sql = "SELECT clients.email FROM clients
+                    INNER JOIN tracking_codes
+                    ON clients.id = tracking_codes.client_id
+                    WHERE tracking_codes.code = ? OR tracking_codes.masked_code = ?";
+    
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ss", $tracking_code, $tracking_code);
+            $stmt->execute();
+            $result = $stmt->get_result();
+    
+            if ($result->num_rows > 0) {
+                while($row = $result->fetch_assoc()) {
+                    echo "Email: " . $row["email"]. "<br>";
+                }
+            } else {
+                echo "Nenhum email encontrado para o código de rastreio fornecido.";
+            }
+        } elseif (!empty($client_email) && empty($tracking_code)) {
+            // Se apenas o campo do email estiver preenchido
+            $sql = "SELECT clients.email, tracking_codes.code, tracking_codes.from_brazil, 
+                            tracking_codes.masked_code, tracking_codes.created_at,  tracking_codes.updated_at, tracking_codes.status_days
+                    FROM clients
+                    INNER JOIN tracking_codes
+                    ON clients.id = tracking_codes.client_id
+                    WHERE clients.email = ?";
+    
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("s", $client_email);
+            $stmt->execute();
+            $result = $stmt->get_result();
+    
+            if ($result->num_rows > 0) {
+                while($row = $result->fetch_assoc()) {
+                    echo "Email: " . $row["email"]. "<br>";
+                    echo "Código de Rastreio: " . $row["code"]. "<br>";
+                    echo "Produto do Brasil: " . ($row["from_brazil"] ? "Sim" : "Não"). "<br>";
+                    echo "Código Mascarado: " . $row["masked_code"]. "<br>";
+                    echo "Data de Criação: " . $row["created_at"]. "<br>";
+                    echo "Data de Edição: " . $row["updated_at"]. "<br>";
+                    echo "Valor de status: " . $row["status_days"]. "<br>";
+                    echo "-------------------<br>";
+                }
+            } else {
+                echo "Nenhum resultado encontrado para o email fornecido.";
             }
         } else {
-            echo "0 resultados";
+            echo "Você deve preencher apenas o campo do código ou o campo do email.";
         }
         break;
+           
 }
 
 // Encerrando a conexão

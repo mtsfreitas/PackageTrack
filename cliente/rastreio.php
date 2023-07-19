@@ -7,6 +7,7 @@
   <title>Exemplo de Códigos de Rastreamento</title>
   <style>
     .floating-stack {
+      position: relative; /* Adicionado */
       background-color: white;
       color: #fff;
       height: 300px;
@@ -62,8 +63,8 @@
     }
 
     body {
-      background: rgb(84,144,112);
-      background: linear-gradient(90deg, rgba(84,144,112,1) 0%, rgba(4,65,58,1) 100%);
+      background: rgb(84, 144, 112);
+      background: linear-gradient(90deg, rgba(84, 144, 112, 1) 0%, rgba(4, 65, 58, 1) 100%);
       color: white;
       height: 100vh;
       margin: 0;
@@ -77,12 +78,57 @@
       margin-bottom: 1rem;
     }
 
+    .loader-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 999; 
+      display: none; 
+    }
+
+    .loader-container.active {
+      display: flex; 
+    }
+
+    .loader {
+      border: 16px solid #f3f3f3;
+      border-top: 16px solid #78ffb7;
+      border-radius: 50%;
+      width: 120px;
+      height: 120px;
+      animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
   </style>
+  <script>
+    function redirectToStatusPage(code) {
+      var loaderContainer = document.querySelector(".loader-container"); /* Adicionado */
+      loaderContainer.classList.add("active"); /* Adicionado */
+
+      setTimeout(function () {
+        window.location.href = "status.php?codigo=" + code;
+      }, 2000);
+    }
+  </script>
 </head>
 
 <body>
   <div class="container">
-  <h2 class="message" >Rastreie seu pedido</h2>
+    <h2 class="message">Rastreie seu pedido</h2>
     <div class="floating-stack">
       <?php
       // Importa o arquivo de configuração do banco de dados
@@ -117,7 +163,7 @@
 
         // Exibe os links para cada código de rastreamento
         while ($row = $result->fetch_assoc()) {
-          echo "<dd><a href='status.php?codigo=" . $row['masked_code'] . "'>&#128230; " . $row['masked_code'] . "</a></dd>";
+          echo "<dd><a href='#' onclick=\"redirectToStatusPage('" . $row['masked_code'] . "')\">&#128230; " . $row['masked_code'] . "</a></dd>";
         }
       } else {
         echo "<dd>Por favor, aguarde alguns dias para que seus pedidos sejam atualizados ou verifique se digitou corretamente seu endereço de e-mail.</dd>";
@@ -127,6 +173,9 @@
       $conn->close();
       ?>
     </div>
+  </div>
+  <div class="loader-container"> <!-- Adicionado -->
+    <div class="loader"></div> <!-- Adicionado -->
   </div>
 </body>
 
