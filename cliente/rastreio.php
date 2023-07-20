@@ -116,9 +116,14 @@
   </style>
   <script>
     function redirectToStatusPage(code) {
-      var loaderContainer = document.querySelector(".loader-container"); /* Adicionado */
-      loaderContainer.classList.add("active"); /* Adicionado */
-
+      var loaderContainer = document.querySelector(".loader-container");
+      loaderContainer.classList.add("active");
+    
+      // Verificar se a página está sendo descarregada
+      window.onbeforeunload = function() {
+        loaderContainer.classList.remove("active");
+      };
+    
       setTimeout(function () {
         window.location.href = "status.php?codigo=" + code;
       }, 2000);
