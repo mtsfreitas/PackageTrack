@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Welcome to the Product Tracking Website repository! This project is a web application that allows users to track their products by providing their registered email address. Once the user enters their email, they can view a list of associated tracking codes and click on each code to view the status of their product's shipment.
+Welcome to the Product Tracking Website repository! This project is a web application that allows users to track their products.
 
 ## Features
 
