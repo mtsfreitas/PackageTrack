@@ -1,4 +1,5 @@
 <?php
+
 include '../modulo/db_config.php';
 
 $conn = new mysqli($host, $user, $pass, $db);
@@ -8,7 +9,7 @@ if ($conn->connect_error) {
 
 $codigo = $_GET['codigo'];
 
-$query = "SELECT created_at, from_brazil FROM tracking_codes WHERE masked_code = ?";
+$query = "SELECT created_at, updated_at, from_brazil, status_days FROM tracking_codes WHERE masked_code = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("s", $codigo);
 $stmt->execute();
@@ -20,43 +21,44 @@ if ($result->num_rows > 0) {
     $row = $result->fetch_assoc();
 
     $created_at = new DateTime($row['created_at']);
-    $from_brazil = $row['from_brazil'];
-    $now = new DateTime();
+    $updated_at = new DateTime($row['updated_at']);
+    $today = new DateTime();
 
-    $interval = $created_at->diff($now);
-    $days = $interval->days;
+    // Cálculo dos dias úteis
+    $interval = $today->diff($created_at);
+    $daysDifference = $interval->days;
 
-    $remainingDays = $days;
     $weekendDays = 0;
-    while ($remainingDays > 0) {
-        $dayOfWeek = $created_at->format('N');
-        if ($dayOfWeek >= 6) {
+    for ($i = 1; $i <= $daysDifference; $i++) {
+        $currentDay = clone $created_at;
+        $currentDay->modify("+$i day");
+        $dayOfWeek = $currentDay->format('N'); // 1 (segunda-feira) a 7 (domingo)
+        if ($dayOfWeek >= 6 || $dayOfWeek == 0) {
             $weekendDays++;
         }
-        $created_at->modify('+1 day');
-        $remainingDays--;
     }
-    $days -= $weekendDays;
+    $businessDays = $daysDifference - $weekendDays;
+    $businessDays += $row['status_days'];
 
+    $from_brazil = $row['from_brazil'];
     $estimated_delivery_days = ($from_brazil == 1) ? 14 : 28;
-    $remaining_delivery_days = $estimated_delivery_days - $days;
-    
+    $remaining_delivery_days = $estimated_delivery_days - $businessDays;
+
     if ($remaining_delivery_days <= 0) {
-        $delivery_message = "Sua encomenda chegou";
+        $delivery_message = "Sua encomenda chegou". $businessDays;
     } else {
-        $delivery_message = "O pedido <strong>" . $codigo . "</strong> chegará aproximadamente em até " . $remaining_delivery_days . " dias úteis.";
+        $delivery_message = "O pedidao <strong>" . $codigo . "</strong> chegará aproximadamente em até " . $remaining_delivery_days . " dias úteis." . $businessDays;
     }
 
-    if ($days >= 0 && $days < 2) {
+    if ($businessDays  >= 0 && $businessDays  < 2) {
         $status = "Pedido feito";
-    } else if ($days >= 2 && $days < 4) {
+    } else if ($businessDays  >= 2 && $businessDays  < 4) {
         $status = "Enviado à transportadora";
-    } else if ($days >= 4 && $days < $estimated_delivery_days) {
+    } else if ($businessDays  >= 4 && $businessDays  < $estimated_delivery_days) {
         $status = "Em trânsito";
-    } else if ($days >= $estimated_delivery_days) {
+    } else if ($businessDays  >= $estimated_delivery_days) {
         $status = "Entregue";
     }
-
 } else {
     echo "Código de rastreamento não encontrado.";
     exit();
@@ -68,10 +70,16 @@ $conn->close();
 $statusList = array("Pedido feito", "Enviado à transportadora", "Em trânsito", "Entregue");
 ?>
 
+
 <!DOCTYPE html>
 <html>
 <head>
 <style>
+    .icon {
+        width: 100%;
+        height: 65%;
+        vertical-align: middle;
+    }
     .container {
         display: flex;
         flex-direction: column;
@@ -122,7 +130,7 @@ $statusList = array("Pedido feito", "Enviado à transportadora", "Em trânsito",
 
 
     .status-item.active .square, .status-item.completed .square {
-        background-color: cyan;
+        background-color: #4ec1b2;;
     }
 
     .status-item .square svg {
@@ -144,17 +152,15 @@ $statusList = array("Pedido feito", "Enviado à transportadora", "Em trânsito",
     foreach ($statusList as $statusItem) {
         $class = "";
         if ($status == $statusItem) {
-            $class = "active completed";
-        } else if (array_search($status, $statusList) > array_search($statusItem, $statusList)) {
+            $class = "active";
+        } else if (array_search($status, $statusList) >= array_search($statusItem, $statusList)) {
             $class = "completed";
         }
 
         echo '<li class="status-item ' . $class . '">';
         echo '<div class="square">';
         if ($class == "active" || $class == "completed") {
-            echo '<svg>';
-            echo '<use xlink:href="icon2.svg#icone-check"></use>';
-            echo '</svg>';
+            echo '<img src="icon.svg" alt="Ícone" class = "icon">';           
         }
         echo '</div>';
         echo '<span>' . $statusItem . '</span>';

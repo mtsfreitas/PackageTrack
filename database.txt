@@ -16,10 +16,14 @@ CREATE TABLE tracking_codes (
   from_brazil BOOLEAN NOT NULL,
   masked_code VARCHAR(191) NOT NULL UNIQUE,
   created_at DATETIME,
-  order_status VARCHAR(255),
+  updated_at DATETIME,
+  status_days INT DEFAULT 0,
   FOREIGN KEY (client_id) REFERENCES clients(id)
 );
 
 #####
 INSERT INTO users (username, password)
 VALUES ('root', 'senha');
+
+use shipdatabase;
+select * from tracking_codes;

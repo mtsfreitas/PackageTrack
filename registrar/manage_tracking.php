@@ -34,45 +34,47 @@ function seeded_shuffle($str, $seed){
 // Dependendo da ação, executar código diferente
 switch($action) {
     case 'Registrar':
-            // Código para registrar aqui
-            $seed = crc32($_POST['tracking_code']);
-            $masked_code = seeded_shuffle($_POST['tracking_code'], $seed);
-    
-            $sql = "SELECT id FROM clients WHERE email = ?";
+        // Código para registrar aqui
+        $seed = crc32($_POST['tracking_code']);
+        $masked_code = seeded_shuffle($_POST['tracking_code'], $seed);
+
+        $sql = "SELECT id FROM clients WHERE email = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("s", $_POST['client_email']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            $client_id = $row['id'];
+        } else {
+            $sql = "INSERT INTO clients (email) VALUES (?)";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("s", $_POST['client_email']);
-            $stmt->execute();
-            $result = $stmt->get_result();
-    
-            if ($result->num_rows > 0) {
-                $row = $result->fetch_assoc();
-                $client_id = $row['id'];
-            } else {
-                $sql = "INSERT INTO clients (email) VALUES (?)";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("s", $_POST['client_email']);
-                if ($stmt->execute() === TRUE) {
-                    $client_id = $stmt->insert_id;
-                } else {
-                    echo "Erro ao inserir novo cliente: " . $stmt->error;
-                    $stmt->close();
-                    $conn->close();
-                    exit;
-                }
-            }
-    
-            $now = gmdate("Y-m-d H:i:s");
-            $sql = "INSERT INTO tracking_codes (client_id, code, masked_code, from_brazil, created_at) VALUES (?, ?, ?, ?, ?)";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param("issis", $client_id, $_POST['tracking_code'], $masked_code, $from_brazil, $now);
-
-    
             if ($stmt->execute() === TRUE) {
-                echo "Código de rastreio registrado no banco de dados com sucesso!";
+                $client_id = $stmt->insert_id;
             } else {
-                echo "Erro ao registrar código de rastreio: " . $stmt->error;
+                echo "Erro ao inserir novo cliente: " . $stmt->error;
+                $stmt->close();
+                $conn->close();
+                exit;
             }
-        break;
+        }
+
+        $now = new DateTime();
+        $now->setTimezone(new DateTimeZone('America/Sao_Paulo'));
+        $now = $now->format('Y-m-d H:i:s');
+        $sql = "INSERT INTO tracking_codes (client_id, code, masked_code, from_brazil, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ississ", $client_id, $_POST['tracking_code'], $masked_code, $from_brazil, $now, $now);
+
+
+        if ($stmt->execute() === TRUE) {
+            echo "Código de rastreio registrado no banco de dados com sucesso!";
+        } else {
+            echo "Erro ao registrar código de rastreio: " . $stmt->error;
+        }
+    break;     
     case 'Editar':
         // Verificando se o código de rastreio associado ao e-mail do cliente existe
         $_SESSION['client_email'] = $client_email;
@@ -107,6 +109,43 @@ switch($action) {
             }
         } else {
             echo "Erro ao deletar código de rastreio: " . $stmt->error;
+        }
+        break;
+    case 'Buscar':
+        // Protege contra injeção SQL
+        $client_email = $conn->real_escape_string($client_email);
+
+        // Consulta SQL para buscar os dados do cliente e os códigos de rastreamento associados
+        $sql = "SELECT clients.email, tracking_codes.code, tracking_codes.from_brazil, 
+                        tracking_codes.masked_code, tracking_codes.created_at,  tracking_codes.updated_at, tracking_codes.status_days
+                FROM clients
+                INNER JOIN tracking_codes
+                ON clients.id = tracking_codes.client_id
+                WHERE clients.email = ?";
+
+        // Preparando a consulta
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("s", $client_email);
+        $stmt->execute();
+
+        // Armazenando o resultado
+        $result = $stmt->get_result();
+
+        // Verifica se algum resultado foi retornado
+        if ($result->num_rows > 0) {
+            // Exibe os dados de cada linha retornada
+            while($row = $result->fetch_assoc()) {
+                echo "Email: " . $row["email"]. "<br>";
+                echo "Código de Rastreio: " . $row["code"]. "<br>";
+                echo "Produto do Brasil: " . ($row["from_brazil"] ? "Sim" : "Não"). "<br>";
+                echo "Código Mascarado: " . $row["masked_code"]. "<br>";
+                echo "Data de Criação: " . $row["created_at"]. "<br>";
+                echo "Data de Edição: " . $row["updated_at"]. "<br>";
+                echo "Valor de status: " . $row["status_days"]. "<br>";
+                echo "-------------------<br>";
+            }
+        } else {
+            echo "0 resultados";
         }
         break;
 }

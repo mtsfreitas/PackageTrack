@@ -12,6 +12,7 @@
         <input type="submit" name="action" value="Registrar">
         <input type="submit" name="action" value="Editar">
         <input type="submit" name="action" value="Deletar" onclick="return confirm('Tem certeza de que deseja deletar este código de rastreio?');">
+        <input type="submit" name="action" value="Buscar">
     </form>
 </body>
 </html>
