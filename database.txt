@@ -23,7 +23,7 @@ CREATE TABLE tracking_codes (
 
 #####
 INSERT INTO users (username, password)
-VALUES ('root', 'senha');
+VALUES ('user', 'pass');
 
 use shipdatabase;
 select * from tracking_codes;
